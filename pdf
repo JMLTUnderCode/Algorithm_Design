@@ -1,0 +1,19 @@
+#!/bin/bash
+# Script para convertir archivos .md a .pdf usando Pandoc solo si han cambiado
+
+for i in {1..10}; do
+    DIR="${i}-Tarea"
+    if [ -d "$DIR" ]; then
+        for MD in "$DIR"/*.md; do
+            [ -e "$MD" ] || continue
+            PDF="${MD%.md}.pdf"
+            # Si el PDF no existe o el MD es más reciente que el PDF
+            if [ ! -f "$PDF" ] || [ "$MD" -nt "$PDF" ]; then
+                echo "Generando PDF para $MD..."
+                pandoc "$MD" -o "$PDF"
+            else
+                echo "PDF actualizado para $MD, no es necesario regenerar."
+            fi
+        done
+    fi
+done
