@@ -12,3 +12,7 @@ $$
 \end{matrix}
 $$
 
+# Indice
+- [Resolución de Tarea 1 - Complejidad Algorítmica y Análisis Amortizado (Fecha: 29 de Septiembre de 2025)](#resolución-de-tarea-1---complejidad-algorítmica-y-análisis-amortizado-fecha-29-de-septiembre-de-2025)
+- [Indice](#indice)
+
