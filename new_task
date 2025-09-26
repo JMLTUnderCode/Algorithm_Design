@@ -1,0 +1,42 @@
+#!/bin/bash
+# Script para crear una nueva tarea con template en Markdown
+
+if [ "$#" -ne 4 ]; then
+    echo "Uso: ./new_task <number> <value> <topic> <date>"
+    exit 1
+fi
+
+NUMBER="$1"
+VALUE="$2"
+TOPIC="$3"
+DATE="$4"
+DIR="${NUMBER}-Tarea"
+MD_FILE="Tarea ${NUMBER} - Resolución by JuniorLara.md"
+
+if [ -d "$DIR" ]; then
+    echo "Error: La carpeta '$DIR' ya existe. No se puede crear una tarea ya existente."
+    exit 1
+fi
+
+mkdir "$DIR"
+cat > "$DIR/$MD_FILE" <<EOF
+# Resolución de Tarea ${NUMBER} - ${TOPIC} (Fecha: ${DATE})
+
+\$\$
+\begin{matrix}
+\text{Universidad Simón Bolívar} \\
+\text{Departamento de Computación y Tecnología de la Información} \\
+\text{CI5651 - Diseño de Algoritmos I} \\
+\text{Septiembre - Diciembre 2025} \\
+\text{Estudiante: Junior Miguel Lara Torres (17-10303)} \\
+\text{ } \\
+\Large \text{Tarea ${NUMBER} (${VALUE} puntos)} \\
+\end{matrix}
+\$\$
+
+# Indice
+- [Resolución de Tarea ${NUMBER} - ${TOPIC} (Fecha: ${DATE})](#resolución-de-tarea-${NUMBER}---${TOPIC// /-}-fecha-${DATE// /-})
+- [Indice](#indice)
+EOF
+
+echo "Tarea ${NUMBER} creada exitosamente en '$DIR/$MD_FILE'"

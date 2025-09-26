@@ -22,6 +22,20 @@ En su defecto, si se quiere instalar el paquete completo de Latex (aprox. 4 GB d
 sudo apt-get install texlive-full
 ```
 
+## Crear nuevas tareas
+
+Se crea un script que permite crear nuevas tareas. Tiene 4 argumentos
+- number: Numerico - Numero de la tarea.
+- value: Numerico - Valor en punto de la tarea.
+- topic: Texto - Tema o topicos de la tarea.
+- date: Texto - Fecha de entrega de la tarea.
+
+```sh
+./new_task <number> <value> "<topic>" "<date>"
+```
+
+Ej. `./new_task 1 9 "Complejidad Algorítmica y Análisis Amortizado" "29 de Septiembre de 2025"`
+
 ## Generación de PDF's automatizado
 
 Se crea un script que permite generar todas las resoluciones version PDF de las tareas modificadas a nivel de .md. 
@@ -33,3 +47,5 @@ Estando en la raiz del repositorio basta con ejecutar
 
 > [!NOTE]
 > Este script solo convertirá los archivos .md a PDF si han sido modificados desde la última generación del PDF, evitando conversiones innecesarias.
+
+
