@@ -24,13 +24,13 @@ cat > "$DIR/$MD_FILE" <<EOF
 
 \$\$
 \begin{matrix}
-\text{Universidad Simón Bolívar} \\
-\text{Departamento de Computación y Tecnología de la Información} \\
-\text{CI5651 - Diseño de Algoritmos I} \\
-\text{Septiembre - Diciembre 2025} \\
-\text{Estudiante: Junior Miguel Lara Torres (17-10303)} \\
-\text{ } \\
-\Large \text{Tarea ${NUMBER} (${VALUE} puntos)} \\
+\text{Universidad Simón Bolívar} \\\\
+\text{Departamento de Computación y Tecnología de la Información} \\\\
+\text{CI5651 - Diseño de Algoritmos I} \\\\
+\text{Septiembre - Diciembre 2025} \\\\
+\text{Estudiante: Junior Miguel Lara Torres (17-10303)} \\\\
+\text{ } \\\\
+\Large \text{Tarea ${NUMBER} (${VALUE} puntos)} \\\\
 \end{matrix}
 \$\$
 
