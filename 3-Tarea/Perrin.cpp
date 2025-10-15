@@ -70,7 +70,7 @@ Matrix power(Matrix M, ll n)
  * P(n) está definido por P(0)=3, P(1)=0, P(2)=2, P(n)=P(n-2)+P(n-3).
  * El cálculo usa la exponenciación de matrices: S_n = M^(n-2) * S_2.
  * @param n El índice del número de Perrin a calcular.
- * @return ll El valor de P(n).
+ * @return El valor de P(n).
  */
 ll perrin(ll n)
 {
@@ -106,7 +106,6 @@ ll perrin(ll n)
     return P_n;
 }
 
-// Función principal para prueba y validación
 int main()
 {
     int N;
