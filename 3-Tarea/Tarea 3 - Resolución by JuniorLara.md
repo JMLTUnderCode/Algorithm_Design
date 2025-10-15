@@ -20,6 +20,10 @@ $$
   - [Justificación](#justificación)
   - [Implementación en C++](#implementación-en-c)
 - [Pregunta 3](#pregunta-3)
+  - [Caso Base (Hojas)](#caso-base-hojas)
+  - [Caso Recursivo (Nodos Intermedios)](#caso-recursivo-nodos-intermedios)
+  - [Proceso de Consulta ($maxBP(i, j)$)](#proceso-de-consulta-maxbpi-j)
+  - [Implementación en C++](#implementación-en-c-1)
 
 # Pregunta 1
 
@@ -188,3 +192,179 @@ ll perrin(ll n) {
 
 # Pregunta 3
 
+El problema $maxBP(i, j)$ requiere encontrar la longitud de la subcadena bien parentizada más larga dentro del rango $S[i..j]$.
+
+Para resolver esto cada nodo debe almacenar información que permita **maximizar el número de pares válidos formados entre sus hijos, respetando la regla de precedencia** (un `(` debe venir antes de su `)` correspondiente).
+
+Cada nodo del Árbol de Segmentos representará un segmento de la cadena $S$ y almacenará tres componentes esenciales:
+
+| Componente | Definición |
+| :--- | :--- |
+| **`M` (`matched_pairs`)** | El número de pares `()` perfectamente cerrados y maximizados dentro del subsegmento cubierto por este nodo. |
+| **`O` (`unmatched_open`)** | El número de paréntesis de apertura `(` que quedan sin emparejar. |
+| **`C` (`unmatched_close`)** | El número de paréntesis de cierre `)` que quedan sin emparejar. |
+
+La longitud final en un segmento es **$2 \times M$**.
+
+## Caso Base (Hojas)
+
+Los nodos hoja representan un único carácter $S[i]$ de la cadena.
+
+1.  Si $S[i] = '(':$
+    *   `M` = 0
+    *   `O` = 1 (Apertura pendiente)
+    *   `C` = 0
+2.  Si $S[i] = ')':$
+    *   `M` = 0
+    *   `O` = 0
+    *   `C` = 1 (Cierre pendiente)
+
+## Caso Recursivo (Nodos Intermedios)
+
+Un nodo padre $U$ se forma combinando la información de su hijo izquierdo $L$ y su hijo derecho $R$. La operación crucial aquí es identificar los **nuevos pares** que se pueden formar en la frontera entre $L$ y $R$.
+
+1.  **Cálculo de Nuevos Pares ($M_{new}$):**
+    Los nuevos pares solo se pueden formar si un paréntesis abierto que sobró en el lado izquierdo ($L.O$) encuentra un paréntesis de cierre que sobró en el lado derecho ($R.C$).
+    $$\mathbf{M_{new} = \min(L.O, R.C)}$$
+
+2.  **Combinación de Pares ($U.M$):**
+    El total de pares resueltos en el nodo padre es la suma de los pares resueltos en los hijos, más los nuevos pares formados en la frontera.
+    $$\mathbf{U.M = L.M + R.M + M_{new}}$$
+
+3.  **Combinación de Paréntesis Abiertos ($U.O$):**
+    La cuenta de `O` es la suma de los abiertos de ambos hijos, menos aquellos que se utilizaron exitosamente para formar $M_{new}$.
+    $$\mathbf{U.O = L.O + R.O - M_{new}}$$
+
+4.  **Combinación de Paréntesis Cerrados ($U.C$):**
+    De manera simétrica, la cuenta de `C` es la suma de los cierres de ambos hijos, menos aquellos que se utilizaron para formar $M_{new}$.
+    $$\mathbf{U.C = L.C + R.C - M_{new}}$$
+
+## Proceso de Consulta ($maxBP(i, j)$)
+
+Para una consulta de rango $[i..j]$:
+
+1.  Se realiza un recorrido estándar del Segment Tree, combinando (utilizando la operación `Merge` descrita anteriormente) los valores de todos los nodos que cubren exactamente o parcialmente el rango $[i..j]$.
+2.  La función de consulta devuelve un único objeto `Node` resultante, $U_{total}$.
+3.  La longitud de la subcadena bien parentizada más larga en el rango $S[i..j]$ es simplemente **$2 \times U_{total}.M$**.
+
+Dado que la construcción inicial del árbol toma tiempo $O(n)$ (tiempo lineal, ya que el *merge* es $O(1)$) y cada consulta requiere solo $O(\log n)$, este algoritmo resuelve el problema.
+
+## Implementación en C++
+
+El archivo funcional se encuentra en [seq_paren.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/3-Tarea/seq_paren.cpp)
+
+```cpp
+// Estructura para almacenar la información de subcadenas bien parentizadas
+struct Node {
+    int matched_pairs;   // M: Pares coincidentes totales (longitud = 2*M)
+    int unmatched_open;  // O: Paréntesis abiertos sin coincidir (disponibles a la derecha)
+    int unmatched_close; // C: Paréntesis cerrados sin coincidir (disponibles a la izquierda)
+};
+
+class MaxBPSubsequenceSegmentTree {
+private:
+    int n;
+    string S;
+    vector<Node> tree;
+
+    // Función auxiliar para combinar los resultados de dos nodos hijos (Left y Right)
+    Node merge(const Node& L, const Node& R) {
+        Node result;
+        
+        // 1. Calcular nuevas coincidencias formadas por L.O y R.C
+        int new_matches = min(L.unmatched_open, R.unmatched_close);
+        
+        // 2. Total de pares coincidentes
+        result.matched_pairs = L.matched_pairs + R.matched_pairs + new_matches;
+        
+        // 3. Unmatched Open: Suma de los hijos menos los que se acaban de emparejar
+        result.unmatched_open = L.unmatched_open + R.unmatched_open - new_matches;
+        
+        // 4. Unmatched Close: Suma de los hijos menos los que se acaban de emparejar
+        result.unmatched_close = L.unmatched_close + R.unmatched_close - new_matches;
+        
+        return result;
+    }
+
+    // Construcción recursiva del Segment Tree
+    void build(int v, int tl, int tr) {
+        if (tl == tr) {
+            // Caso Base: Nodo Hoja
+            if (S[tl] == '(') {
+                tree[v] = {0, 1, 0}; // M=0, O=1, C=0
+            } else if (S[tl] == ')') {
+                tree[v] = {0, 0, 1}; // M=0, O=0, C=1
+            } else {
+                // Si la cadena solo tiene paréntesis, esto es por seguridad
+                tree[v] = {0, 0, 0};
+            }
+        } else {
+            // Caso Recursivo: Nodos Intermedios
+            int tm = (tl + tr) / 2;
+            build(2 * v, tl, tm);         // Hijo izquierdo
+            build(2 * v + 1, tm + 1, tr); // Hijo derecho
+            
+            // Combinar los resultados de los hijos
+            tree[v] = merge(tree[2 * v], tree[2 * v + 1]);
+        }
+    }
+
+    // Función de consulta recursiva para obtener la información de un rango [l, r]
+    Node query_recursive(int v, int tl, int tr, int l, int r) {
+        // Inicializar un nodo nulo (cero coincidencias y cero paréntesis pendientes)
+        if (l > r || tl > tr) {
+            return {0, 0, 0};
+        }
+        
+        if (l == tl && r == tr) {
+            // El nodo actual cubre exactamente el rango de consulta [l, r]
+            return tree[v];
+        }
+        
+        int tm = (tl + tr) / 2;
+        
+        // Consultar y combinar los resultados de las partes que se superponen con [l, r]
+        Node L_result = query_recursive(2 * v, tl, tm, l, min(r, tm));
+        Node R_result = query_recursive(2 * v + 1, tm + 1, tr, max(l, tm + 1), r);
+
+        // La combinación debe realizarse si ambos lados retornaron datos válidos
+        if (L_result.matched_pairs == 0 
+            && L_result.unmatched_open == 0 
+            && L_result.unmatched_close == 0) {
+            return R_result;
+        }
+        if (R_result.matched_pairs == 0 
+            && R_result.unmatched_open == 0 
+            && R_result.unmatched_close == 0) {
+            return L_result;
+        }
+
+        return merge(L_result, R_result);
+    }
+
+public:
+    // S_input es la cadena, asumimos índices base 0 internamente.
+    MaxBPSubsequenceSegmentTree(const string& input_S) : S(input_S) {
+        n = S.length();
+        // Redimensionar para 4*n (tamaño estándar para Segment Trees)
+        tree.resize(4 * n + 1);
+        if (n > 0) {
+            // Construir desde la raíz (v=1), cubriendo [0, n-1]
+            build(1, 0, n - 1); 
+        }
+    }
+
+    // Función para realizar la consulta maxBP(i, j)
+    // i y j se asumen como índices base 1 (como en S[1..n]). 
+    // Internamente usamos base 0.
+    int maxBP(int i, int j) {
+        if (i < 1 || j > n || i > j || n == 0) return 0;
+
+        // Convertir a índices base 0: [i-1, j-1]
+        Node result = query_recursive(1, 0, n - 1, i - 1, j - 1);
+
+        // La longitud de la subcadena bien parentizada es 2 * M
+        return 2 * result.matched_pairs;
+    }
+};
+```
