@@ -12,7 +12,6 @@ using namespace std;
 // Códigos ANSI para colores y atributos de texto en terminales compatibles.
 // Nota: El efecto de parpadeo (blink) no está soportado en todos los emuladores de terminal;
 // muchos terminales modernos ignoran la secuencia de "blink" por razones de accesibilidad.
-// Si el parpadeo no funciona en tu terminal, puedes eliminar el código de BLINK y usar solo color.
 static const string ANSI_RESET = "\x1B[0m";
 static const string ANSI_BOLD = "\x1B[1m";
 static const string ANSI_BLINK = "\x1B[5m"; // Parpadeo (puede ser ignorado)
