@@ -131,7 +131,7 @@ $$
 Por lo tanto, a distancia de edición entre las cadenas es 6.
 
 >[!NOTE]
-> Dado que no existe al menos una letra en común entre los estados iniciales de las palabras notamos que la distancia es de 6 igual a la longitud de la palabra mas larga (martes). Esto básicamente simula que se debe cambiar todos los caracteres para conseguir el objetivo. Acá el código en C++ con el algoritmo respectivo para realizar pruebas: [distancia_edicion.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/4-Tarea/distancia_edicion.cpp).
+> Dado que no existe al menos una letra en común entre los estados iniciales de las palabras notamos que la distancia es de 6 igual a la longitud de la palabra mas larga (martes). Esto básicamente simula que se debe cambiar todos los caracteres para conseguir el objetivo. Acá el código en C++ con el algoritmo respectivo para realizar pruebas: [edit_distance.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/4-Tarea/edit_distance.cpp).
 
 
 # Pregunta 2
