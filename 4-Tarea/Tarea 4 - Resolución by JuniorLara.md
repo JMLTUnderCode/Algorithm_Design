@@ -256,7 +256,7 @@ int longest_familiar_subarrays(const vector<int> &A, int n) {
 
 # Pregunta 3
 
-Por resolver
+El programa se encuentra en el siguiente enlace: [virtual_inicialization.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/4-Tarea/virtual_inicialization.cpp)
 
 # Pregunta 4
 
