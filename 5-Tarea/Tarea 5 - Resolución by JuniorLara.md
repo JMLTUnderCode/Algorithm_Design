@@ -24,9 +24,11 @@ $$
   - [Parte (c)](#parte-c)
   - [Parte (d)](#parte-d)
 - [Pregunta 2](#pregunta-2)
+  - [Algoritmo](#algoritmo)
+    - [3. Implementación en C++](#3-implementación-en-c)
 - [Pregunta 3](#pregunta-3)
 - [Pregunta 4](#pregunta-4)
-  - [Algoritmo](#algoritmo)
+  - [Algoritmo](#algoritmo-1)
     - [Fase 1: Construcción del Grafo](#fase-1-construcción-del-grafo)
     - [Fase 2: Cálculo del Emparejamiento Bipartito Máximo (MCBM)](#fase-2-cálculo-del-emparejamiento-bipartito-máximo-mcbm)
 
@@ -91,6 +93,99 @@ Por lo tanto, el Ancestro Común Más Bajo entre 'l' y 'a' es j.
 
 # Pregunta 2
 
+El problema pide determinar si es posible orientar las aristas de un grafo no dirigido de encuentros $G=(A, E)$ (donde los agentes $A$ son los nodos y los encuentros $E$ son las aristas) de tal forma que toda la información pueda alcanzar a todos los agentes. Esto equivale a encontrar una **orientación fuertemente conexa** ($G'$), es decir, un grafo dirigido donde existe un camino de $u$ a $v$ y de $v$ a $u$ para todo par de nodos $u, v$.
+
+El **Teorema de Robbins** establece que un grafo no dirigido $G$ puede tener una orientación fuertemente conexa si, y solo si, $G$ es **conexo** y **no contiene puentes**.
+
+Si el grafo $G$ es conexo y la cantidad de puentes es nula, el Teorema de Robbins se cumple. En este caso, la orientación fuertemente conexa resultante garantiza un **plan de propagación de información** tal que, al asignar roles de "hablante" y "oyente" (orientación de las aristas), la información generada por cualquier agente puede alcanzar a todos los demás.
+
+## Algoritmo
+
+Para resolver el problema en el tiempo lineal requerido, $O(|A| + |E|)$, utilizaremos una única pasada de Búsqueda en Profundidad (DFS) modificada para cumplir dos objetivos:
+
+1.  **Verificación de Conexidad:** Un DFS iniciado desde un nodo arbitrario explorará el grafo completo si y solo si es conexo. Si no todos los nodos son visitados, el grafo es disconexo.
+2.  **Detección de Puentes:** Utilizaremos la extensión del DFS (similar al algoritmo de [Tarjan](https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm)) que calcula los tiempos de descubrimiento (`dfs_num`) y el valor más bajo alcanzable (`dfs_low`) para cada nodo. Una arista de árbol $(u, v)$ es un **puente** si, al salir del subárbol de $v$, el punto más alto que se puede alcanzar es el propio $v$ o un nodo que está más abajo, es decir, si $\mathbf{dfs\_low}(v) > \mathbf{dfs\_num}(u)$.
+
+Si el algoritmo verifica que el grafo es conexo y encuentra que el número total de puentes es cero, entonces existe un plan de propagación de información.
+
+### 3. Implementación en C++
+
+La siguiente función en C++ implementa la lógica usando un DFS para verificar la conexidad y contar los puentes en tiempo $O(|A| + |E|)$.
+
+```cpp
+// Constantes y estructuras auxiliares para la detección de puentes (Bridges)
+typedef vector<vector<int>> AdjList;
+
+// Variables globales para el DFS
+int timer_counter;
+vector<int> dfs_num;  // Tiempo de descubrimiento (prenum)
+vector<int> dfs_low;  // Menor prenum alcanzable desde el subárbol
+vector<bool> visited; // Para el chequeo de conectividad
+int total_vis;        // Total visitados en DFS.
+int num_bridges;
+
+void find_bridges(int u, int p, const AdjList& G) {
+    visited[u] = true;
+    total_vis++;
+    dfs_num[u] = dfs_low[u] = timer_counter++;
+
+    for (int v : G[u]) {
+        if (v == p) continue; // Ignorar la arista de vuelta al padre
+
+        if (dfs_num[v] != -1) {
+            // Caso 1: Vértice 'v' ya visitado (back edge)
+            // Actualizamos dfs_low[u] con el tiempo de descubrimiento (dfs_num) de 'v'
+            dfs_low[u] = min(dfs_low[u], dfs_num[v]);
+        } else {
+            // Caso 2: Vértice 'v' no visitado (tree edge)
+            find_bridges(v, u, G);
+
+            // Después de la llamada recursiva, actualizamos dfs_low[u]
+            // con el valor más bajo alcanzado por 'v'
+            dfs_low[u] = min(dfs_low[u], dfs_low[v]);
+
+            // Detección de Puente: si el subárbol de 'v' no puede alcanzar 
+            // a un ancestro estricto de 'u' (o 'u' mismo)
+            if (dfs_low[v] > dfs_num[u]) {
+                // Si dfs_low[v] > dfs_num[u], la arista (u, v) es un puente
+                num_bridges++;
+            }
+        }
+    }
+}
+
+bool isStronglyConnectable(int N, const vector<pair<int, int>>& E) {
+    if (N <= 1) return true; // Si hay 0 o 1 agente, trivialmente es SC.
+
+    // 1. Construcción del Grafo (Lista de Adyacencia)
+    AdjList G(N);
+    for (const auto& edge : E) {
+        G[edge.first].push_back(edge.second);
+        G[edge.second].push_back(edge.first);
+    }
+    
+    // 2. Inicialización de estructuras auxiliares
+    timer_counter = 0;
+    num_bridges = 0;
+    total_vis = 0;
+    // -1 indica UNVISITED, usado para inicializar dfs_num y asegurar el chequeo de conectividad
+    dfs_num.assign(N, -1);
+    dfs_low.assign(N, 0);
+    visited.assign(N, false); 
+
+    // 3. Ejecutar DFS modificado (empezamos desde el nodo 0)
+    find_bridges(0, -1, G);
+    
+    // 4. Verificación de Conexidad y Cero Puentes (Biconexidad de Aristas)
+    // Por el Teorema de Robbins, si es conexo y no tiene puentes, admite orientación SC.
+    if (num_bridges == 0 && total_vis == N) {
+        return true;
+    } else {
+        return false;
+    }
+}
+```
+
 # Pregunta 3
 
 # Pregunta 4
@@ -145,9 +240,3 @@ La cardinalidad del MCBM puede encontrarse usando algoritmos de flujo máximo (M
 El algoritmo de **Hopcroft-Karp** es uno de los métodos más eficientes para encontrar el MCBM, con una complejidad de tiempo de $O(Edges \cdot \sqrt{Nodos})$.
 
 Sustituyendo $Edges = n^2$ y $Nodos = |C| = n$ tenemos $O(n^2 \cdot \sqrt{n})$
-
-
-
-
-
-
