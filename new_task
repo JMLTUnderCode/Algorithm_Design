@@ -20,6 +20,9 @@ fi
 
 mkdir "$DIR"
 cat > "$DIR/$MD_FILE" <<EOF
+---
+geometry: margin=1in
+---
 # Resolución de Tarea ${NUMBER} - ${TOPIC} (Fecha: ${DATE})
 
 \$\$
