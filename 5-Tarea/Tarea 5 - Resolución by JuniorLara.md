@@ -25,14 +25,14 @@ $$
   - [Parte (d)](#parte-d)
 - [Pregunta 2](#pregunta-2)
   - [Algoritmo](#algoritmo)
-    - [3. Implementación en C++](#3-implementación-en-c)
+  - [Implementación en C++](#implementación-en-c)
 - [Pregunta 3](#pregunta-3)
 - [Pregunta 4](#pregunta-4)
   - [Algoritmo](#algoritmo-1)
     - [Fase 1: Construcción del Grafo](#fase-1-construcción-del-grafo)
     - [Fase 2: Cálculo del Emparejamiento Bipartito Máximo (MCBM)](#fase-2-cálculo-del-emparejamiento-bipartito-máximo-mcbm)
   - [Complejidad](#complejidad)
-  - [Implementación C++](#implementación-c)
+  - [Implementación en C++](#implementación-en-c-1)
 
 # Pregunta 1
 
@@ -110,7 +110,7 @@ Para resolver el problema en el tiempo lineal requerido, $O(|A| + |E|)$, utiliza
 
 Si el algoritmo verifica que el grafo es conexo y encuentra que el número total de puentes es cero, entonces existe un plan de propagación de información.
 
-### 3. Implementación en C++
+## Implementación en C++
 
 El archivo funcional con algunos ejemplos de prueba se encuentra en [agents.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/agents.cpp).
 
@@ -263,7 +263,7 @@ Tenemos:
 
 Nos queda entonces $O(n^2 \cdot \sqrt{n} + M \cdot log(log(M)))$ cuyo tiempo es el más fiel a la implementación real. Por otro lado, tomando la indicación del problema en cuanto a saber si un número es primo o no es $O(1)$, entonces tenemos $O(n^2 \cdot \sqrt{n})$ finalmente.
 
-## Implementación C++
+## Implementación en C++
 
 El archivo funcional con algunos ejemplos de prueba se encuentra en [mbcm.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/mbcm.cpp).
 
