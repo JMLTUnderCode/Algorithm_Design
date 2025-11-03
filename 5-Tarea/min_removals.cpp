@@ -163,7 +163,7 @@ namespace HopcroftKarp
 
 // Usaremos esta función para encapsular el requerimiento de la tarea 5.
 // El conjunto C está representado por un vector de enteros.
-int solve_p4_t5(const vector<int> &C)
+int min_removals(const vector<int> &C)
 {
     int minimum_removals = 0;
 
@@ -299,7 +299,7 @@ int main()
         arr6[i] = vals6[i];
     dict["C6"] = make_pair(arr6, n6);
 
-    // Iterar por todos los arreglos C en el diccionario, aplicar solve_p4_t5 y mostrar resultado
+    // Iterar por todos los arreglos C en el diccionario, aplicar min_removals y mostrar resultado
     for (auto &kv : dict)
     {
         const string &name = kv.first;
@@ -308,7 +308,7 @@ int main()
 
         // Convertir arreglo C a vector<int> para pasar a la función existente
         vector<int> Cvec(arr, arr + sz);
-        int result = solve_p4_t5(Cvec);
+        int result = min_removals(Cvec);
 
         cout << "Conjunto " << name << ": ";
         for (int i = 0; i < sz; ++i)

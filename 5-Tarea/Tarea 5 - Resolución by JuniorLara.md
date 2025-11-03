@@ -112,7 +112,7 @@ Si el algoritmo verifica que el grafo es conexo y encuentra que el número total
 
 ## Implementación en C++
 
-El archivo funcional con algunos ejemplos de prueba se encuentra en [agents.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/agents.cpp).
+El archivo funcional y documentado, con algunos ejemplos de prueba se encuentra en [agents.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/agents.cpp).
 
 ```cpp
 // Constantes y estructuras auxiliares para la detección de puentes (Bridges)
@@ -190,7 +190,103 @@ bool isStronglyConnectable(int N, const vector<pair<int, int>>& E) {
 
 # Pregunta 3
 
+Para el problema planteado se tiene que Jugador 1 (MAX, usa '-') y Jugador 2 (MIN, usa '|'). Para resolverlo, aplicamos la técnica Minimax.
 
+Una **configuración (estado)** $W$ debe contener toda la información necesaria para determinar los movimientos legales y el resultado del juego. Dado que el tablero es de $3 \times 3$ (9 casillas) y existe una restricción sobre la jugada anterior, definimos el estado de la siguiente manera:
+
+1. **Tablero:** Una matriz $3 \times 3$ donde cada celda $c_{i,j}$ contiene el símbolo del Jugador 1 (-), el símbolo del Jugador 2 (|), ambos (+) o ninguno (vacío). Para modelarlo internamente, cada celda se representa como un par booleano: $(\text{Hay } -, \text{Hay } |)$.
+$$\begin{array}{c|c|c}
+\hline
+\text{Hay }`-' & \text{Hay }`|' & \text{Celda} \\ \hline
+False & False &   \\ 
+False & True  & | \\
+True  & False & - \\
+True  & True  & + \\
+\end{array}$$
+
+2. La coordenada de la casilla donde se jugó en el turno inmediatamente anterior se define como **Última Posición Jugada ($último\_mov$)**. Esto es esencial para aplicar la regla de la restricción.
+
+3. Una transición es un movimiento legal que lleva de una configuración $W$ a una configuración sucesora $X$. El conjunto de sucesores de $W$, $Sucesores(W, \text{Jugador})$, se define como todas las jugadas posibles que cumplen:
+   
+   * El jugador de turno elige una casilla $c_{i,j}$ que sea diferente a $último\_mov(W)$, que esté vacía o contenga sólo el símbolo del contrincante.
+   * Si el jugador es MAX ('-'), se añade '-' a $c_{i,j}$. Si es MIN ('|'), se añade '|' a $c_{i,j}$. Si la celda ya contenía el símbolo del oponente, ahora contendrá un '+'.
+   * La posición $c_{i,j}$ seleccionada pasa a ser la nueva $último\_mov$ en $X$.
+
+La función `eval(w)` asigna un valor a una configuración $w$. Esta función se utiliza para **configuraciones terminales** (aquellas donde se ha alcanzado la profundidad máxima o el juego ha terminado).
+
+El valor de la configuración $w$ se calcula como:
+
+* **Ganador MAX:** Si MAX forma tres '+' en línea (fila, columna o diagonal): $eval(w) = 1000$.
+* **Ganador MIN:** Si MIN forma tres '+' en línea: $eval(w) = -1000$.
+* **Empate:** Si el tablero está lleno y no hay ganador: $eval(w) = 0$.
+
+El valor debe ser **más positiva si el jugador 1 va ganando** y **más negativa si el jugador 2 va ganando**.
+
+Se tienen las siguientes funciones auxiliares:
+
+```pseudocodigo
+función check_terminal(w: configuración) -> booleano
+    // Retorna 'cierto' si hay 3 '+' en línea o si no quedan movimientos legales.
+    si hay_3_mas_en_linea(w) retornar cierto
+    si sucesores(w, jugador_actual) es vacio retornar cierto
+    retornar falso
+
+función eval(w: configuración) -> entero
+    // Evalúa una configuración terminal.
+    si hay_3_mas_en_linea(w, '-') retornar 1000 // MAX gana
+    si hay_3_mas_en_linea(w, '|') retornar -1000 // MIN gana
+    retornar 0 // Empate
+```
+
+Las funciones `primero` y `segundo` son recursivas. La Poda Alfa-Beta utiliza dos valores: $\alpha$ (el valor mínimo que tiene asegurado el jugador que maximiza) y $\beta$ (el valor máximo que tiene asegurado el jugador que minimiza). Si $\beta \le \alpha$, se poda la rama.
+
+```pseudocodigo
+función primero(w: configuración, alfa: entero, beta: entero) -> entero
+    // Jugador MAX (Maximiza)
+    si check_terminal(w)
+        retornar eval(w)
+    
+    mejor_valor <- -infinito // Representando el valor más bajo posible
+    
+    para cada x en sucesores(w, '-')
+        valor <- segundo(x, alfa, beta)
+        mejor_valor <- max(mejor_valor, valor)
+        alfa <- max(alfa, mejor_valor)
+        
+        si beta <= alfa
+            salir del ciclo // Poda Beta
+            
+    retornar mejor_valor
+
+función segundo(w: configuración, alfa: entero, beta: entero) -> entero
+    // Jugador MIN (Minimiza)
+    si check_terminal(w)
+        retornar eval(w)
+    
+    mejor_valor <- infinito // Representando el valor más alto posible
+    
+    para cada x en sucesores(w, '|')
+        valor <- primero(x, alfa, beta)
+        mejor_valor <- min(mejor_valor, valor)
+        beta <- min(beta, mejor_valor)
+        
+        si beta <= alfa
+            salir del ciclo // Poda Alfa
+            
+    retornar mejor_valor
+
+// Función principal para iniciar la búsqueda
+función resolver_minimax(config_inicial: configuración) -> entero
+    alfa_inicial <- -infinito
+    beta_inicial <- infinito
+    retornar primero(config_inicial, alfa_inicial, beta_inicial)
+```
+
+Finalmente, para determinar si hay una estrategia ganadora, el algoritmo `resolver_minimax` se invoca con la configuración inicial y:
+
+*   Si el resultado es **positivo**, el Jugador 1 (MAX) tiene una estrategia ganadora.
+*   Si el resultado es **negativo**, el Jugador 2 (MIN) tiene una estrategia ganadora.
+*   Si el resultado es **cero**, el resultado óptimo es un empate.
 
 # Pregunta 4
 
@@ -265,7 +361,7 @@ Nos queda entonces $O(n^2 \cdot \sqrt{n} + M \cdot log(log(M)))$ cuyo tiempo es 
 
 ## Implementación en C++
 
-El archivo funcional con algunos ejemplos de prueba se encuentra en [mbcm.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/mbcm.cpp).
+El archivo funcional y documentado, con algunos ejemplos de prueba se encuentra en [min_removals.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/min_removals.cpp).
 
 ```cpp
 vector<int> sieve_array; // Array 0/1 para la criba (1 = Primo)
@@ -374,7 +470,7 @@ namespace HopcroftKarp {
     }
 }
 
-int solve_p4_t5(const vector<int> &C) {
+int min_removals(const vector<int> &C) {
     int minimum_removals = 0;
 
     if (C.empty())
