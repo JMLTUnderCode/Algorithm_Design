@@ -7,9 +7,9 @@
 
 using namespace std;
 
-// Constantes globales
-const int MAX_VAL_SIEVE = 2005;            // Ajuste basado en el límite típico de Cmax * 2
-vector<int> sieve_array(MAX_VAL_SIEVE, 1); // Array 0/1 para la criba (1 = Primo)
+// Criba (vector dinámico). Se redimensiona en runtime según el mayor valor
+// que necesitemos consultar (2 * c_max en el problema).
+vector<int> sieve_array; // Array 0/1 para la criba (1 = Primo)
 
 // =========================================================
 // 1. Criba de Eratóstenes.
@@ -22,23 +22,19 @@ vector<int> sieve_array(MAX_VAL_SIEVE, 1); // Array 0/1 para la criba (1 = Primo
  */
 void sieve(int max_val)
 {
-    if (max_val >= MAX_VAL_SIEVE)
-    {
-        // Se debe redimensionar si el max_val es mayor al previsto,
-        // pero usamos una constante para simplicidad en la implementación de ejemplo.
-        max_val = MAX_VAL_SIEVE - 1;
-    }
-    fill(sieve_array.begin(), sieve_array.end(), 1); // Inicialmente todos son primos
-    sieve_array[0] = sieve_array[1] = 0;             // 0 y 1 no son primos
+    if (max_val < 2)
+        max_val = 2;
+
+    // Reservar espacio para 0..max_val
+    sieve_array.assign(max_val + 1, 1);
+    sieve_array[0] = sieve_array[1] = 0; // 0 y 1 no son primos
 
     for (int p = 2; p * p <= max_val; p++)
     {
         if (sieve_array[p] == 1)
         {
             for (int i = p * p; i <= max_val; i += p)
-            {
                 sieve_array[i] = 0; // Marca los múltiplos como no primos
-            }
         }
     }
 }
@@ -48,7 +44,7 @@ void sieve(int max_val)
  */
 bool is_prime(int v)
 {
-    if (v < 0 || v >= MAX_VAL_SIEVE)
+    if (v < 0 || v >= (int)sieve_array.size())
         return false;
     return sieve_array[v] == 1;
 }
@@ -85,9 +81,7 @@ namespace HopcroftKarp
                 Q.push_back(u);
             }
             else
-            {
                 dist[u] = INF;
-            }
         }
         dist[NIL] = INF;
 
@@ -156,9 +150,7 @@ namespace HopcroftKarp
             {
                 // Si u es libre e inicializa un camino de aumento en la capa más corta
                 if (match_L[u] == NIL && dfs(u))
-                {
                     result++;
-                }
             }
         }
         return result;
@@ -171,24 +163,10 @@ namespace HopcroftKarp
 
 // Usaremos esta función para encapsular el requerimiento de la tarea 5.
 // El conjunto C está representado por un vector de enteros.
-int solve_p4_t5(const vector<int> &C_original)
+int solve_p4_t5(const vector<int> &C)
 {
-    if (C_original.empty())
-        return 0;
-
-    vector<int> C = C_original;
     int minimum_removals = 0;
 
-    // --- Manejo del Caso Borde 1+1=2 ---
-    // Si 1 está presente, DEBE ser eliminado (coste 1) para evitar el conflicto 1+1=2.
-    auto it_one = find(C.begin(), C.end(), 1);
-    if (it_one != C.end())
-    {
-        minimum_removals = 1;
-        C.erase(it_one); // Eliminamos 1 del conjunto para el análisis bipartito
-    }
-
-    // Si después de eliminar el 1, el conjunto está vacío
     if (C.empty())
         return minimum_removals;
 
@@ -196,11 +174,8 @@ int solve_p4_t5(const vector<int> &C_original)
     int c_max = *max_element(C.begin(), C.end());
 
     // Paso 1b: Criba de Eratóstenes hasta 2 * Cmax
-    // Manejo de límite si excede el tamaño predefinido del array de la criba
-    int limit = 2 * c_max;
-    if (limit > MAX_VAL_SIEVE)
-        limit = MAX_VAL_SIEVE - 1;
-
+    // No usamos un límite fijo: creamos la criba hasta 2 * c_max (como mínimo 2)
+    int limit = max(2, 2 * c_max);
     sieve(limit);
 
     // Paso 2a: Separar C en conjuntos L (impares) y R (pares)
@@ -209,7 +184,12 @@ int solve_p4_t5(const vector<int> &C_original)
     for (int x : C)
     {
         if (x % 2 != 0)
-            L_vals.push_back(x);
+        {
+            if (x == 1)             // Excluimos al 1 si está presente
+                minimum_removals++; // Asegurarse de contar el 1 si está presente
+            else
+                L_vals.push_back(x);
+        }
         else
             R_vals.push_back(x);
     }

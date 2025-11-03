@@ -229,7 +229,7 @@ Sin embargo, hay que considerar los siguientes puntos
   
 * Si el número 1 está presente en el conjunto inicial $C$ y la restricción exige que no existan $x,y$ tales que $x+y$ sea primo (permitiendo $x=y$), la suma $1+1=2$ constituye un conflicto que debe ser eliminado.
 * Este conflicto ocurre dentro del conjunto de números impares $A$, rompiendo la naturaleza bipartita simple del grafo para el conjunto original $C$.
-* Solución: Para preservar la estructura bipartita $G$, el número 1 debe ser eliminado obligatoriamente si está presente. Se incrementa el conteo de eliminaciones mínimas en 1, y se resuelve el problema sobre el conjunto restante $C' = C / \{1\}$. Mediante esta corrección, el algoritmo total calcula el número mínimo de eliminaciones como: 
+* Solución: Para preservar la estructura bipartita $G$, el número 1 debe ser EXCLUIDO obligatoriamente si está presente. Se incrementa el conteo de eliminaciones mínimas en 1, y se resuelve el problema sobre el conjunto restante $C' = C / \{1\}$. Mediante esta corrección, el algoritmo total calcula el número mínimo de eliminaciones como: 
     $$\text{Eliminaciones Minimas} = (1 \text{ si } 1 \in C \text{ si no } 0) + \textbf{MBCM(G')}$$ 
     donde $G'$ es el grafo bipartito generado por los elementos en $C / \{1\}$. 
 
@@ -268,34 +268,30 @@ Nos queda entonces $O(n^2 \cdot \sqrt{n} + M \cdot log(log(M)))$ cuyo tiempo es 
 El archivo funcional con algunos ejemplos de prueba se encuentra en [mbcm.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/5-Tarea/mbcm.cpp).
 
 ```cpp
-// Constantes globales
-const int MAX_VAL_SIEVE = 2005;            // Ajuste basado en el límite típico de Cmax * 2
-vector<int> sieve_array(MAX_VAL_SIEVE, 1); // Array 0/1 para la criba (1 = Primo)
+vector<int> sieve_array; // Array 0/1 para la criba (1 = Primo)
 
 void sieve(int max_val) {
-    if (max_val >= MAX_VAL_SIEVE)
-        max_val = MAX_VAL_SIEVE - 1;
-    
-    fill(sieve_array.begin(), sieve_array.end(), 1); // Inicialmente todos son primos
-    sieve_array[0] = sieve_array[1] = 0;             // 0 y 1 no son primos
+    if (max_val < 2)
+        max_val = 2;
+
+    sieve_array.assign(max_val + 1, 1);
+    sieve_array[0] = sieve_array[1] = 0; // 0 y 1 no son primos
 
     for (int p = 2; p * p <= max_val; p++) {
         if (sieve_array[p] == 1) {
-            for (int i = p * p; i <= max_val; i += p) {
+            for (int i = p * p; i <= max_val; i += p)
                 sieve_array[i] = 0; // Marca los múltiplos como no primos
-            }
         }
     }
 }
 
 bool is_prime(int v) {
-    if (v < 0 || v >= MAX_VAL_SIEVE)
+    if (v < 0 || v >= (int)sieve_array.size())
         return false;
     return sieve_array[v] == 1;
 }
 
-namespace HopcroftKarp
-{
+namespace HopcroftKarp {
     int V_L, V_R;            // Tamaños de los conjuntos L y R
     vector<vector<int>> Adj; // Lista de adyacencia del grafo bipartito
     vector<int> match_R;     // match_R[v] = el nodo en L emparejado con v en R
@@ -313,8 +309,7 @@ namespace HopcroftKarp
             if (match_L[u] == NIL) {
                 dist[u] = 0;
                 Q.push_back(u);
-            }
-            else
+            } else
                 dist[u] = INF;
         }
         dist[NIL] = INF;
@@ -341,7 +336,8 @@ namespace HopcroftKarp
             for (int v : Adj[u]) {
                 // Buscamos un camino de aumento más corto
                 if (dist[match_R[v]] == dist[u] + 1) {
-                    if (dfs(match_R[v])) { // Invertimos el camino (toggle)                        
+                    if (dfs(match_R[v])) {
+                        // Invertimos el camino (toggle)
                         match_R[v] = u;
                         match_L[u] = v;
                         return true;
@@ -378,23 +374,9 @@ namespace HopcroftKarp
     }
 }
 
-int solve_p4_t5(const vector<int> &C_original)
-{
-    if (C_original.empty())
-        return 0;
-
-    vector<int> C = C_original;
+int solve_p4_t5(const vector<int> &C) {
     int minimum_removals = 0;
 
-    // --- Manejo del Caso Borde 1+1=2 ---
-    // Si 1 está presente, DEBE ser eliminado (coste 1) para evitar el conflicto 1+1=2.
-    auto it_one = find(C.begin(), C.end(), 1);
-    if (it_one != C.end()) {
-        minimum_removals = 1;
-        C.erase(it_one); // Eliminamos 1 del conjunto para el análisis bipartito
-    }
-
-    // Si después de eliminar el 1, el conjunto está vacío
     if (C.empty())
         return minimum_removals;
 
@@ -402,24 +384,34 @@ int solve_p4_t5(const vector<int> &C_original)
     int c_max = *max_element(C.begin(), C.end());
 
     // Paso 1b: Criba de Eratóstenes hasta 2 * Cmax
-    int limit = 2 * c_max;
-    if (limit > MAX_VAL_SIEVE)
-        limit = MAX_VAL_SIEVE - 1;
-
+    // No usamos un límite fijo: creamos la criba hasta 2 * c_max (como mínimo 2)
+    int limit = max(2, 2 * c_max);
     sieve(limit);
 
     // Paso 2a: Separar C en conjuntos L (impares) y R (pares)
     vector<int> L_vals, R_vals;
     vector<int> map_to_index(2 * c_max + 1, 0); // Mapea valor a índice en L/R
     for (int x : C) {
-        if (x % 2 != 0)
-            L_vals.push_back(x);
+        if (x % 2 != 0) {
+            if (x == 1)             // Excluimos al 1 si está presente
+                minimum_removals++; // Asegurarse de contar el 1 si está presente
+            else
+                L_vals.push_back(x);
+        }
         else
             R_vals.push_back(x);
     }
 
+    // Si la suma es prima (mayor que 2), debe ser impar, por lo tanto (Impar + Par).
+    // El único primo par es 2. Si x+y=2, x=1, y=1, pero los elementos en C son distintos.
+    // Si C contiene 1, 1 es impar. Si C contiene 2, 2 es par. 1+2=3 (Primo).
+    // La bipartición en par/impar es fundamental.
+
     int n_L = L_vals.size();
     int n_R = R_vals.size();
+
+    // Mapeamos los valores de L y R a índices 1-basados para Hopcroft-Karp
+    // L: 1..n_L, R: 1..n_R. NIL (0) es para nodos no emparejados.
 
     vector<vector<int>> adj_hk(n_L + 1); // Lista de adyacencia solo para el conjunto L
 
@@ -427,6 +419,8 @@ int solve_p4_t5(const vector<int> &C_original)
     for (int i = 0; i < n_L; ++i) {
         for (int j = 0; j < n_R; ++j) {
             int sum = L_vals[i] + R_vals[j];
+            // Si la suma es prima, añadimos una arista entre el nodo i+1 (en L)
+            // y el nodo j+1 (en R)
             if (sum <= limit && is_prime(sum))
                 adj_hk[i + 1].push_back(j + 1);
         }
