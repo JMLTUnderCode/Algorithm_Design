@@ -10,7 +10,7 @@ for i in {1..10}; do
             # Si el PDF no existe o el MD es más reciente que el PDF
             if [ ! -f "$PDF" ] || [ "$MD" -nt "$PDF" ]; then
                 echo "Generando PDF para $MD..."
-                pandoc "$MD" -o "$PDF"
+                pandoc "$MD" -o "$PDF" --pdf-engine=xelatex --pdf-engine-opt=-shell-escape --highlight-style=monochrome -V colorlinks=true --listings
             else
                 echo "PDF actualizado para $MD, no es necesario regenerar."
             fi
