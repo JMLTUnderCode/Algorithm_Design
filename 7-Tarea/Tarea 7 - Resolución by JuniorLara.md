@@ -47,6 +47,7 @@ $$
     - [2. Cálculo de PLCP\[k\] (Prefijo Común Permutado más Largo)](#2-cálculo-de-plcpk-prefijo-común-permutado-más-largo)
     - [3. Cálculo de LCP\[i\] (Prefijo Común más Largo)](#3-cálculo-de-lcpi-prefijo-común-más-largo)
 - [Pregunta 2](#pregunta-2)
+  - [Implementación en C++](#implementación-en-c)
 
 # Pregunta 1
 
@@ -151,4 +152,63 @@ $LCP$ se define como 0.
 $$LCP = [0, 0, 2, 0, 1, 0, 1, 0]$$
 
 # Pregunta 2
+
+Este problema es una aplicación directa del algoritmo de pre-procesamiento utilizado en Knuth-Morris-Pratt (KMP), el cual calcula la longitud del Prefijo Propio más Largo (LPS, por sus siglas en inglés) que también es un sufijo para cada prefijo de la cadena.
+
+El algoritmo KMP utiliza una tabla de saltos ($b$ o $\pi$) que, para una cadena $x$, almacena en la posición $i$ la longitud del prefijo propio más largo de $x[0..i]$ que también es un sufijo de $x[0..i]$.
+
+Si aplicamos este algoritmo de pre-procesamiento a la cadena $S$, el último elemento de la tabla LPS calculará precisamente la longitud $L$ del prefijo propio más largo de $S$ que es también un sufijo de $S$.
+
+La complejidad temporal de este pre-procesamiento es lineal, $O(N)$, lo que satisface el requerimiento de eficiencia del problema.
+
+## Implementación en C++
+
+El archivo funcional se encuentra en [lps.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/7-Tarea/lps.cpp)
+
+```cpp
+// Función para calcular la longitud del Longest Proper Prefix (LPS) array para KMP.
+// La complejidad es O(n).
+string compute_lps_array(const std::string &S) {
+    int N = S.length();
+    // La subcadena más grande debe ser propia (T != S), así que si N <= 1,
+    // solo podemos retornar la cadena vacía.
+    if (N <= 1)
+        return "";
+
+    // lps[i] almacenará la longitud del prefijo propio más largo de S[0...i]
+    // que también es un sufijo de S[0...i].
+    vector<int> lps(N, 0);
+
+    int len = 0; // Longitud del prefijo más largo anterior que es también sufijo
+    int i = 1;
+
+    // Lazo que calcula lps[i] para i = 1 a N-1
+    while (i < N) {
+        if (S[i] == S[len]) {
+            len++;
+            lps[i] = len;
+            i++;
+        } else {
+            // Desigualdad de caracteres
+            // Retrocedemos a la longitud LPS anterior (len - 1)
+            if (len != 0)
+                len = lps[len - 1];
+            else {
+                // Si len es 0, no hay un prefijo común, lps[i] = 0
+                lps[i] = 0;
+                i++;
+            }
+        }
+    }
+    // La longitud L de la subcadena T deseada es el último elemento del arreglo LPS.
+    // Esto se debe a que lps[N-1] almacena la longitud del prefijo más largo
+    // de S[0...N-1] que también es un sufijo de S[0...N-1].
+    int L = lps[N - 1];
+    
+    // Extraemos la subcadena de longitud L.
+    return S.substr(0, L);
+}
+```
+
+
 
