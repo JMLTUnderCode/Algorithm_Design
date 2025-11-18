@@ -43,13 +43,12 @@ $$
   - [(a) Construcción del Árbol de Sufijos para $w$](#a-construcción-del-árbol-de-sufijos-para-w)
   - [(b) Construcción del Arreglo de Sufijos (SA)](#b-construcción-del-arreglo-de-sufijos-sa)
   - [(c) Cálculo de PLCP\[k\] y LCP\[k\]](#c-cálculo-de-plcpk-y-lcpk)
-    - [1. Cálculo de Phi](#1-cálculo-de-phi)
-    - [2. Cálculo de PLCP\[k\] (Prefijo Común Permutado más Largo)](#2-cálculo-de-plcpk-prefijo-común-permutado-más-largo)
-    - [3. Cálculo de LCP\[i\] (Prefijo Común más Largo)](#3-cálculo-de-lcpi-prefijo-común-más-largo)
 - [Pregunta 2](#pregunta-2)
   - [Implementación en C++](#implementación-en-c)
 - [Pregunta 3](#pregunta-3)
   - [Implementación en C++](#implementación-en-c-1)
+- [Pregunta 4](#pregunta-4)
+  - [Implementación en C++](#implementación-en-c-2)
 
 # Pregunta 1
 
@@ -93,65 +92,65 @@ $$SA =[7, 3, 5, 2, 0, 4, 6, 1]$$
 
 Para calcular los arreglos de Longitud de Prefijo Común (LCP) y Prefijo Común Permutado más Largo (PLCP), primero se define el arreglo auxiliar $\Phi$ (Phi).
 
-### 1. Cálculo de Phi
+1. Cálculo de $\Phi$
 
-El arreglo $\Phi$ almacena, para el sufijo que empieza en la posición $k$, el índice de inicio del sufijo que lo precede inmediatamente en el arreglo de sufijos ordenado ($SA$).
+    El arreglo $\Phi$ almacena, para el sufijo que empieza en la posición $k$, el índice de inicio del sufijo que lo precede inmediatamente en el arreglo de sufijos ordenado ($SA$).
 
-$$\Phi[SA[i]] = SA[i-1]$$
+    $$\Phi[SA[i]] = SA[i-1]$$
 
-El caso base es $SA=7$ (el sufijo $\lambda$), para el cual $\Phi$ se define como $\lambda$ o $-1$.
+    El caso base es $SA=7$ (el sufijo $\lambda$), para el cual $\Phi$ se define como $\lambda$ o $-1$.
 
-| Rank (i) | $SA[i]$ (Índice) | Sufijo $w[SA[i]..]$ | $SA[i-1]$ (Predecesor) | $\mathbf{\Phi[SA[i]]}$ |
-| :---: | :---: | :--- | :---: | :---: |
-| 0 | 7 | $\lambda$ | N/A | -1 |
-| 1 | 3 | 0303 | 7 | 7 |
-| 2 | 5 | 03 | 3 | 3 |
-| 3 | 2 | 10303 | 5 | 5 |
-| 4 | 0 | 1710303 | 2 | 2 |
-| 5 | 4 | 303 | 0 | 0 |
-| 6 | 6 | 3 | 4 | 4 |
-| 7 | 1 | 710303 | 6 | 6 |
+    | Rank (i) | $SA[i]$ (Índice) | Sufijo $w[SA[i]..]$ | $SA[i-1]$ (Predecesor) | $\mathbf{\Phi[SA[i]]}$ |
+    | :---: | :---: | :--- | :---: | :---: |
+    | 0 | 7 | $\lambda$ | N/A | -1 |
+    | 1 | 3 | 0303 | 7 | 7 |
+    | 2 | 5 | 03 | 3 | 3 |
+    | 3 | 2 | 10303 | 5 | 5 |
+    | 4 | 0 | 1710303 | 2 | 2 |
+    | 5 | 4 | 303 | 0 | 0 |
+    | 6 | 6 | 3 | 4 | 4 |
+    | 7 | 1 | 710303 | 6 | 6 |
 
-**Arreglo $\Phi$ (Indexado por posición $k$ de 0 a 7):**
-$$\Phi = [2, 6, 5, 7, 0, 3, 4, -1]$$
+    **Arreglo $\Phi$ (Indexado por posición $k$ de 0 a 7):**
+    $$\Phi = [2, 6, 5, 7, 0, 3, 4, -1]$$
 
-### 2. Cálculo de PLCP[k] (Prefijo Común Permutado más Largo)
+2. Cálculo de PLCP[k] (Prefijo Común Permutado más Largo)
 
-$PLCP[k]$ es la longitud del prefijo común más largo entre el sufijo que comienza en $k$ ($w[k..]$) y el sufijo que comienza en $\Phi[k]$ ($w[\Phi[k]..]$).
+    $PLCP[k]$ es la longitud del prefijo común más largo entre el sufijo que comienza en $k$ ($w[k..]$) y el sufijo que comienza en $\Phi[k]$ ($w[\Phi[k]..]$).
 
-| k | $\Phi[k]$ | Sufijo $w[k..]$ | Sufijo $w[\Phi[k]..]$ | $\mathbf{PLCP[k]}$ |
-| :---: | :---: | :--- | :--- | :---: |
-| 0 | 2 | **1**710303 | **1**0303 | 1 |
-| 1 | 6 | 710303 | 3 | 0 |
-| 2 | 5 | 10303 | 03 | 0 |
-| 3 | 7 | 0303 | $\lambda$ | 0 |
-| 4 | 0 | 303 | 1710303 | 0 |
-| 5 | 3 | **03** | **03**03 | 2 |
-| 6 | 4 | **3** | **3**03 | 1 |
-| 7 | -1 | $\lambda$ | N/A | 0 |
+    | k | $\Phi[k]$ | Sufijo $w[k..]$ | Sufijo $w[\Phi[k]..]$ | $\mathbf{PLCP[k]}$ |
+    | :---: | :---: | :--- | :--- | :---: |
+    | 0 | 2 | **1**710303 | **1**0303 | 1 |
+    | 1 | 6 | 710303 | 3 | 0 |
+    | 2 | 5 | 10303 | 03 | 0 |
+    | 3 | 7 | 0303 | $\lambda$ | 0 |
+    | 4 | 0 | 303 | 1710303 | 0 |
+    | 5 | 3 | **03** | **03**03 | 2 |
+    | 6 | 4 | **3** | **3**03 | 1 |
+    | 7 | -1 | $\lambda$ | N/A | 0 |
 
-**Arreglo PLCP** (Indexado por posición $k$ de 0 a 7):
-$$PLCP =[1, 0, 0, 0, 0 , 2, 1, 0]$$
+    **Arreglo PLCP** (Indexado por posición $k$ de 0 a 7):
+    $$PLCP =[1, 0, 0, 0, 0 , 2, 1, 0]$$
 
-### 3. Cálculo de LCP[i] (Prefijo Común más Largo)
+3. Cálculo de LCP[i] (Prefijo Común más Largo)
 
-$LCP[i]$ es la longitud del prefijo común más largo entre el sufijo de rango $i$ ($SA[i]$) y el sufijo de rango $i-1$ ($SA[i-1]$). Se calcula utilizando el arreglo PLCP mediante la fórmula $LCP[i] = PLCP[SA[i]]$.
+    $LCP[i]$ es la longitud del prefijo común más largo entre el sufijo de rango $i$ ($SA[i]$) y el sufijo de rango $i-1$ ($SA[i-1]$). Se calcula utilizando el arreglo PLCP mediante la fórmula $LCP[i] = PLCP[SA[i]]$.
 
-$LCP$ se define como 0.
+    $LCP$ se define como 0.
 
-| Rank (i) | $SA[i]$ | Sufijo $w[SA[i]..]$ | Sufijo $w[SA[i-1]..]$ | $PLCP[SA[i]]$ | $\mathbf{LCP[i]}$ |
-| :---: | :---: | :--- | :--- | :---: | :---: |
-| 0 | 7 | $\lambda$ | N/A | N/A | **0** |
-| 1 | 3 | 0303 | $\lambda$ | $PLCP=0$ | **0** |
-| 2 | 5 | **03** | **03**03 | $PLCP=2$ | **2** |
-| 3 | 2 | 10303 | 03 | $PLCP=0$ | **0** |
-| 4 | 0 | **1**710303 | **1**0303 | $PLCP=1$ | **1** |
-| 5 | 4 | 303 | 1710303 | $PLCP=0$ | **0** |
-| 6 | 6 | **3** | **3**03 | $PLCP=1$ | **1** |
-| 7 | 1 | 710303 | 3 | $PLCP=0$ | **0** |
+    | Rank (i) | $SA[i]$ | Sufijo $w[SA[i]..]$ | Sufijo $w[SA[i-1]..]$ | $PLCP[SA[i]]$ | $\mathbf{LCP[i]}$ |
+    | :---: | :---: | :--- | :--- | :---: | :---: |
+    | 0 | 7 | $\lambda$ | N/A | N/A | **0** |
+    | 1 | 3 | 0303 | $\lambda$ | $PLCP=0$ | **0** |
+    | 2 | 5 | **03** | **03**03 | $PLCP=2$ | **2** |
+    | 3 | 2 | 10303 | 03 | $PLCP=0$ | **0** |
+    | 4 | 0 | **1**710303 | **1**0303 | $PLCP=1$ | **1** |
+    | 5 | 4 | 303 | 1710303 | $PLCP=0$ | **0** |
+    | 6 | 6 | **3** | **3**03 | $PLCP=1$ | **1** |
+    | 7 | 1 | 710303 | 3 | $PLCP=0$ | **0** |
 
-**Arreglo LCP** (Indexado por rango $i$ de 0 a 7):
-$$LCP = [0, 0, 2, 0, 1, 0, 1, 0]$$
+    **Arreglo LCP** (Indexado por rango $i$ de 0 a 7):
+    $$LCP = [0, 0, 2, 0, 1, 0, 1, 0]$$
 
 # Pregunta 2
 
@@ -330,3 +329,193 @@ int count_layers(const vector<Point> &original_P) {
 }
 ```
 
+# Pregunta 4
+
+Para un círculo óptimo de radio $R$ (fijo), existe un centro $C$ tal que el círculo resultante pasa por al menos un punto $p_i \in P$. Esto nos permite reducir el espacio continuo de búsqueda a un conjunto discreto de posiciones.
+
+Si el círculo pasa por un punto $p_i$, el centro $C$ debe residir en la circunferencia $C_i$ de radio $R$ centrado en $p_i$. La solución óptima debe estar en alguna de estas $N$ circunferencias candidatas.
+
+La solución se basa en explotar esta propiedad iterando sobre cada punto $p_i$ como si fuera el punto que define el círculo óptimo:
+
+1.  **Iteración Principal ($O(N)$):** Seleccionamos un punto $p_i \in P$. Consideramos la circunferencia $C_i$ (centro $p_i$, radio $R$) como el foco de los posibles centros óptimos $C$.
+2.  **Definición de Arcos ($O(N)$):** Para cada otro punto $p_j \in P$ ($j \ne i$), queremos saber qué centros $C$ en $C_i$ cubren también a $p_j$.
+    *   Si la distancia entre $p_i$ y $p_j$ es mayor que $2R$ (más allá del diámetro), $p_j$ nunca puede ser cubierto por un círculo de radio $R$ que toque $p_i$ en su frontera, por lo que no contribuye a un arco.
+    *   Si $p_i$ y $p_j$ están lo suficientemente cerca, los centros $C$ en $C_i$ que cubren $p_j$ forman un **arco** $(\alpha_{start}, \alpha_{end})$. Este arco está centrado en la dirección del punto medio de $p_i p_j$ y tiene una apertura angular determinada por $R$.
+3.  **Barrido y Conteo ($O(N \log N)$):**
+    *   Recopilamos los $O(N)$ puntos finales de los arcos (eventos angulares: inicio (+) o fin (-)).
+    *   Ordenamos estos $O(N)$ eventos angulares en el rango $[0, 2\pi)$ ($O(N \log N)$ tiempo).
+    *   Recorremos la lista de eventos. Mantenemos un contador `current_coverage`. Cada evento de inicio aumenta el contador, y cada evento de fin lo disminuye. El máximo valor alcanzado por `current_coverage` en el barrido, más 1 (por $p_i$ que ya está cubierto), es la cobertura máxima posible para el círculo que toca $p_i$.
+4.  **Resultado:** El máximo entre las coberturas calculadas en las $N$ iteraciones es la respuesta.
+
+En este sentido, para la complejidad tenemos
+
+*   Hay $N$ iteraciones principales ($O(N)$).
+*   Dentro de cada iteración, calculamos $O(N)$ arcos ($O(N)$).
+*   Ordenamos $O(N)$ eventos angulares ($O(N \log N)$).
+*   El barrido angular toma $O(N)$.
+*   La complejidad total es: $N \times (O(N) + O(N \log N)) = O(N^2 \log N)$.
+
+## Implementación en C++
+
+El archivo funcional se encuentra en [angular_sweep.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/7-Tarea/angular_sweep.cpp)
+
+```cpp
+// Constante de tolerancia para comparaciones con punto flotante
+const double EPS = 1e-9;
+const double PI = acos(-1.0);
+
+// Estructura para representar un punto
+struct Point {
+    double x, y;
+    int id; // Para seguimiento
+};
+
+// Estructura para representar un evento en el barrido angular
+struct Event {
+    double angle; // Angulo en radianes (0 a 2*PI)
+    int type;     // 1 para inicio de arco (+1 cobertura), -1 para fin de arco (-1 cobertura)
+};
+
+// Estructura para el resultado completo
+struct OptimalResult {
+    int max_count = 0;
+    Point optimal_center = {0.0, 0.0};
+    vector<Point> covered_points;
+};
+
+// Función de comparación para ordenar los eventos.
+bool compare_events(const Event &a, const Event &b) {
+    if (fabs(a.angle - b.angle) > EPS)
+        return a.angle < b.angle;
+
+    return a.type > b.type;
+}
+
+// Calcula la distancia euclidiana
+double dist(Point p1, Point p2) {
+    return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+}
+
+// Funcion para calcular el centro C basado en un punto Pi y un ángulo polar theta
+Point calculate_center(Point pi, double R, double theta) {
+    // El centro C está a distancia R de Pi, en la dirección angular theta
+    return {
+        pi.x + R * cos(theta),
+        pi.y + R * sin(theta)};
+}
+
+/**
+ * Funcion principal que implementa el algoritmo O(N^2 log N) y encuentra el centro óptimo.
+ */
+OptimalResult max_points_covered_n2_log_n(vector<Point> &P, double R) {
+    int N = P.size();
+    if (N == 0)
+        return {};
+
+    // Inicializar IDs para depuración y unicidad
+    for (int i = 0; i < N; ++i)
+        P[i].id = i;
+
+    OptimalResult result;
+
+    // Variables para rastrear la mejor solución encontrada
+    // Inicializamos con 1 (al menos el propio pivote)
+    result.max_count = 1;
+    int best_pivot_idx = 0;
+    double best_angle = 0.0;
+
+    // O(N) iteraciones principales.
+    for (int i = 0; i < N; ++i) {
+        vector<Event> events;
+
+        // O(N) para generar eventos.
+        for (int j = 0; j < N; ++j) {
+            if (i == j)
+                continue;
+
+            double d = dist(P[i], P[j]);
+
+            // Si la distancia es mayor que 2R, P[j] no puede ser cubierta por C(P[i], R).
+            if (d > 2.0 * R + EPS)
+                continue;
+
+            // Calculamos el ángulo alpha del vector P[i] -> P[j]
+            double alpha = atan2(P[j].y - P[i].y, P[j].x - P[i].x);
+
+            // Calculamos el ángulo beta de apertura del arco: beta = acos(d / (2*R))
+            double ratio = min(1.0, d / (2.0 * R)); // Asegura que el argumento de acos no exceda 1
+            double beta = acos(ratio);
+
+            double angle_start = alpha - beta;
+            double angle_end = alpha + beta;
+
+            // Normalización de ángulos a [0, 2*PI) para el barrido.
+            // Para la aritmética de eventos, es más sencillo trabajar con [-PI, PI) o similar
+            // y luego mapear a [0, 2PI) si es necesario. Aquí usamos la detección de cruce de 0.
+
+            // Convertir a [0, 2*PI)
+            auto normalize = [](double angle) {
+                while (angle < 0)
+                    angle += 2.0 * PI;
+                while (angle >= 2.0 * PI)
+                    angle -= 2.0 * PI;
+                return angle;
+            };
+
+            angle_start = normalize(angle_start);
+            angle_end = normalize(angle_end);
+
+            // Generamos los eventos de inicio y fin.
+            if (angle_start <= angle_end + EPS) {
+                // El arco no cruza el eje 0 (2*PI).
+                events.push_back({angle_start, 1});
+                events.push_back({angle_end, -1});
+            } else {
+                // El arco cruza 2*PI (wrap around). Segmento 1: [angle_start, 2*PI). Segmento 2: [0, angle_end].
+                events.push_back({angle_start, 1});
+                events.push_back({2.0 * PI - EPS, -1}); // Fin cerca de 2*PI
+                events.push_back({0.0, 1});             // Inicio en 0
+                events.push_back({angle_end, -1});
+            }
+        }
+
+        // 3. Barrido Angular
+
+        // O(N log N) para ordenar.
+        sort(events.begin(), events.end(), compare_events);
+
+        int current_coverage = 1; // P[i] siempre está cubierto
+
+        // Iteración O(N)
+        for (const auto &event : events) {
+            current_coverage += event.type;
+
+            // Si encontramos una cobertura superior, actualizamos el máximo.
+            // Utilizamos el ángulo del evento (si es de inicio o inmediatamente después de un inicio)
+            // como el centro óptimo candidato.
+            if (current_coverage > result.max_count) {
+                result.max_count = current_coverage;
+                best_pivot_idx = i;
+                best_angle = event.angle;
+
+                // Si el evento era de fin (-1), significa que la cobertura máxima fue justo
+                // antes. Usamos este ángulo como una aproximación del inicio del plateau de cobertura.
+                // Sin embargo, para simplicidad y robustez, usamos el ángulo del evento que
+                // nos llevó a este nuevo máximo.
+            }
+        }
+    }
+
+    // 4. Calcular el Centro Óptimo Final
+    result.optimal_center = calculate_center(P[best_pivot_idx], R, best_angle);
+
+    // 5. Generar la lista de puntos cubiertos por el centro óptimo.
+    for (const auto &p : P) {
+        // dist devuelve la distancia euclidiana; comparar con R (no R^2)
+        if (dist(p, result.optimal_center) <= R + EPS)
+            result.covered_points.push_back(p);
+    }
+
+    return result;
+}
+```
