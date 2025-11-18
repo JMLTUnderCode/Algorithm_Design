@@ -48,6 +48,8 @@ $$
     - [3. Cálculo de LCP\[i\] (Prefijo Común más Largo)](#3-cálculo-de-lcpi-prefijo-común-más-largo)
 - [Pregunta 2](#pregunta-2)
   - [Implementación en C++](#implementación-en-c)
+- [Pregunta 3](#pregunta-3)
+  - [Implementación en C++](#implementación-en-c-1)
 
 # Pregunta 1
 
@@ -210,5 +212,121 @@ string compute_lps_array(const std::string &S) {
 }
 ```
 
+# Pregunta 3
 
+Este problema requiere la aplicación iterativa de un algoritmo de Cáscara Convexa (Convex Hull, CH) para determinar cuántas "capas" concéntricas de puntos existen en un conjunto dado. El algoritmo de **Graham Scan** es una técnica de **barrido geométrico** adecuada para este fin.
+
+Graham Scan es un algoritmo eficiente para calcular el $CH(P)$ en tiempo $O(n \log n)$ para $n$ puntos.
+
+1. Se identifica el punto $p_0$ que tiene la coordenada $y$ mínima (y la coordenada $x$ más a la derecha en caso de empate). Este punto siempre pertenece al Convex Hull.
+2. Los puntos restantes se ordenan en sentido antihorario basándose en el ángulo polar que forman con $p_0$. Este paso domina la complejidad con $O(n \log n)$. Las comparaciones angulares se realizan utilizando el **producto cruz** de los vectores. El producto cruz determina si tres puntos forman un **giro a la izquierda** o un **giro a la derecha**.
+3. Se utiliza una pila para construir la envolvente, asegurando que solo los puntos que mantienen consistentemente un giro a la izquierda permanezcan en ella.
+   * Si el punto actual $p_i$ forma un **giro no-izquierdo** (es decir, colineal o a la derecha) con los dos puntos superiores de la pila, el punto superior se elimina (se saca de la pila) hasta que se restablezca un giro a la izquierda.
+   * El punto $p_i$ se agrega a la pila.
+
+Debido a que Graham Scan toma $O(n \log n)$ y se aplica para cada punto ($n$) tenemos entonces $O(n^2 \log n)$.
+
+## Implementación en C++
+
+El archivo funcional se encuentra en [graham_scan.cpp](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/7-Tarea/graham_scan.cpp)
+
+```cpp
+// Utilizamos long long para las coordenadas para asegurar precisión en el producto cruz.
+struct Point {
+    long long x, y;
+    int id; // Identificador único para rastrear el punto original.
+};
+
+// Función de orientación (producto cruz). >0: CCW, <0: CW, =0: colineal
+long long ccw(Point p, Point q, Point r) {
+    return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+}
+
+// Distancia al cuadrado (auxiliar, opcional)
+long long distSq(Point p1, Point p2) {
+    return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
+}
+
+// Implementación robusta del Convex Hull.
+// Conserva los puntos colineales en el borde (útil para "onion peeling" / capas).
+vector<Point> graham_scan(vector<Point> &P) {
+    int n = P.size();
+    if (n <= 2)
+        return P;
+
+    // Ordenar por x, luego por y
+    sort(P.begin(), P.end(), [](const Point &a, const Point &b)
+         {
+        if (a.x != b.x)
+            return a.x < b.x;
+        return a.y < b.y; });
+
+    vector<Point> lower, upper;
+
+    // Construir la mitad inferior (permitimos colinealidad en el borde: pop solo si giro < 0)
+    for (int i = 0; i < n; ++i) {
+        while (lower.size() >= 2 && ccw(lower[lower.size() - 2], lower.back(), P[i]) < 0)
+            lower.pop_back();
+        lower.push_back(P[i]);
+    }
+
+    // Construir la mitad superior
+    for (int i = n - 1; i >= 0; --i) {
+        while (upper.size() >= 2 && ccw(upper[upper.size() - 2], upper.back(), P[i]) < 0)
+            upper.pop_back();
+        upper.push_back(P[i]);
+    }
+
+    // Concatenar lower + upper (excluyendo los últimos elementos porque se repiten)
+    // Si todos los puntos son colineales, this will produce duplicates; we handle that gracefully.
+    lower.pop_back();
+    upper.pop_back();
+
+    vector<Point> ch = lower;
+    ch.insert(ch.end(), upper.begin(), upper.end());
+
+    return ch;
+}
+
+// 4. Función principal: Contar capas de Convex Hull
+int count_layers(const vector<Point> &original_P) {
+    if (original_P.size() < 3)
+        return 0;
+
+    vector<Point> P = original_P;
+    int layer_count = 0;
+
+    // Repetimos mientras queden suficientes puntos para formar una capa
+    while (P.size() >= 3) {
+        // 1. Calcular el Convex Hull (se modifica el orden de P)
+        vector<Point> hull_points = graham_scan(P);
+
+        // Si el CH no es un polígono, el proceso termina
+        if (hull_points.size() < 3)
+            break;
+
+        layer_count++;
+
+        // 2. Identificar y eliminar los puntos de la capa actual
+
+        // Usamos un mapa para marcar eficientemente los IDs de los puntos del hull
+        map<int, bool> is_on_hull;
+        for (const auto &hp : hull_points)
+            is_on_hull[hp.id] = true;
+
+        vector<Point> next_P;
+        next_P.reserve(P.size() - hull_points.size());
+
+        // 3. Construir el nuevo conjunto de puntos P' (los puntos no eliminados)
+        for (const auto &p : P) {
+            if (is_on_hull.find(p.id) == is_on_hull.end())
+                next_P.push_back(p);
+        }
+
+        P = next_P;
+    }
+
+    return layer_count;
+}
+```
 
