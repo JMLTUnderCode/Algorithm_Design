@@ -219,5 +219,3 @@ def shor_simulation(N, k_max=10):
 # Pregunta 2
 
 Por mi súbalo a la NAZA, ya es cuestión de usted si permite mi atrevimiento xD. Memardo [aquí](https://github.com/JMLTUnderCode/Algorithm_Design/blob/main/10-Tarea/esto_es_diseños.gif).
-
-![alt text](<esto_es_diseños.gif>)
